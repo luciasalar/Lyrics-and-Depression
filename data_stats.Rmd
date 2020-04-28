@@ -1,0 +1,97 @@
+---
+title: "data_stats"
+author: "Lushi Chen"
+date: "6 March 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(reshape2)
+require(ggplot2)
+require(dplyr)
+require(gridExtra)
+```
+
+##Data statistics
+
+
+```{r cars}
+path = "~/Documents/lucia/QuoteAndDepression/data/"
+setwd(path)
+
+stats  <- read.csv('stats_table.csv')
+summary(stats)
+
+#convert table to long format
+stats['userid'] <- NULL
+stats['X'] <- NULL
+
+stats  %>%
+  select('pos', 'neg', 'neu') -> all_posts
+
+#get users 
+stats_table <- melt(all_posts)
+
+
+p1 <- ggplot(data = stats_table,
+       aes(x = variable, y = value, fill=variable)) +
+  geom_boxplot() +
+  stat_summary(fun.y=mean, geom="point", shape=20, size=5, color="black", fill="black")+
+  scale_y_continuous(limits = c(0, 50)) + 
+  xlab("Variables") +
+  ylab('Post Counts') +
+  labs(title = 'Statistics of Post Counts in 180 Days')
+
+#significant difference 
+t.test(stats$pos,stats$neg)
+summary(stats$neg)
+
+#lyric counts
+stats  %>%
+  select('pos_counts', 'nega_counts', 'neu_counts', 'all_count') -> lyrics
+
+lyrics <- lyrics[lyrics$all_count > 0, ]
+lyrics_table <- melt(lyrics)
+
+p2 <- ggplot(data = lyrics_table,
+       aes(x = variable, y = value, fill=variable)) +
+  geom_boxplot() +
+  scale_y_continuous(limits = c(0, 5)) + 
+  stat_summary(fun.y=mean, geom="point", shape=20, size=5, color="black", fill="black")+
+  xlab("Variables") +
+  ylab('Lyrics Counts') + 
+  theme(axis.text.x=element_text(angle=30, hjust=1)) + 
+  labs(title = 'Statistics of Lyrics Counts in 180 Days')
+
+t.test(lyrics$pos,lyrics$neg)
+sd(lyrics$nega_counts)
+
+
+grid.arrange(p1, p2, ncol=2)
+```
+
+```{r pressure, echo=FALSE}
+model <- lm(cesd_sum ~   pos + neu_counts + all_count, stats)
+summary(model)
+```
+
+## Sentiment Statistics
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+high_symptom <- stats[stats$cesd_sum > 22, ]
+low_symptom <- stats[stats$cesd_sum < 22, ]
+
+summary(high_symptom)
+
+summary(low_symptom)
+
+#t.test(high_symptom$neg_lyrics,low_symptom$neg_lyrics)
+#t.test(high_symptom$pos_lyrics,low_symptom$pos_lyrics)
+#t.test(high_symptom$neu_lyrics,low_symptom$neu_lyrics)
+#t.test(high_symptom$all_count,low_symptom$all_count)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
