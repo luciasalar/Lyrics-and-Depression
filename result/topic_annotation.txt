@@ -1,0 +1,127 @@
+Topics for lyrics 
+
+top 5 dominant topics 0, 3, 5, 7, 12
+LIWC analysis. 
+Most of the lyrics refer to 'You', 'I', only small amout refer to third person
+Only small amount of lyrics show specific emotions such as anger, sad, show quantile
+
+Topic 0 used more 'I, you', use more positive and negative emotional words, more anger
+Topic 3 more sad and anger
+3, 5, 12 more 'see, power'
+
+
+
+                         doc_count
+Dominant_Topic                                                
+0.0                           245             
+1.0                            31             
+2.0                            39           
+3.0                           305             
+4.0                            64              
+5.0                           129             
+6.0                            44              
+7.0                           130             
+8.0                            54              
+9.0                            43            
+10.0                           20         
+11.0                           34            
+12.0                          264            
+13.0                           36             
+14.0                           50             
+
+
+0, '0.023*"love_H" , 0.009*"got_H" + 0.009*"want_H" + 0.007*"thing_H" + 0.007*"feel_H" + 0.006*"need_H" + 0.006*"make_H" + 0.005*"come_H" + 0.005*"think_H" + 0.004*"say_H" (desire of love, from high symptom group, this topic features the feeling of 'think, 'want', 'need')
+
+1, '0.003*"say_H" + 0.003*"make_H" + 0.002*"roll_H" + 0.002*"bad_H" + 0.002*"soul_H" + 0.002*"way_H" + 0.002*"lost_H" + 0.002*"new_L" + 0.001*"easi_H" + 0.001*"babi_H"
+
+2, '0.003*"night_H" + 0.002*"cri_H" + 0.002*"lone_L" + 0.002*"run_H" + 0.002*"life_H" + 0.002*"end_L" + 0.001*"song_L" + 0.001*"knew_L" + 0.001*"worri_H" + 0.001*"make_H"'), 
+
+3, '0.016*"love_L" + 0.012*"see_L" + 0.011*"know_L" + 0.009*"make_L" + 0.008*"feel_L" + 0.007*"let_L" + 0.006*"time_L" + 0.006*"go_L" + 0.006*"got_L" + 0.005*"life_L"'),   (affectionate, from low symptom group)
+
+4, '0.004*"tri_H" + 0.003*"get_H" + 0.003*"old_H" + 0.003*"lost_H" + 0.003*"time_H" + 0.003*"littl_H" + 0.002*"bring_H" + 0.002*"make_H" + 0.002*"see_H" + 0.002*"ground_H"'), 
+
+5, '0.007*"know_H" + 0.007*"hold_H" + 0.006*"wait_H" + 0.006*"want_H" + 0.005*"tell_H" + 0.005*"day_H" + 0.005*"love_H" + 0.005*"heart_H" + 0.004*"dark_H" + 0.004*"live_H"'), 
+
+6, '0.003*"come_L" + 0.003*"day_L" + 0.003*"build_H" + 0.003*"live_L" + 0.002*"feel_L" + 0.002*"need_H" + 0.002*"tomorrow_L" + 0.002*"good_L" + 0.002*"hear_H" + 0.002*"tri_L"'), 
+
+7, '0.007*"take_H" + 0.006*"say_H" + 0.005*"good_H" + 0.005*"feel_H" + 0.004*"got_H" + 0.004*"time_H" + 0.003*"sleep_H" + 0.003*"see_H" + 0.003*"know_H" + 0.003*"chang_H"'), 
+
+8, '0.006*"want_H" + 0.003*"got_H" + 0.003*"aliv_H" + 0.003*"know_H" + 0.002*"need_H" + 0.002*"happi_H" + 0.002*"let_H" + 0.002*"keep_H" + 0.002*"give_H" + 0.002*"run_H"'), 
+
+9, '0.002*"fuck_H" + 0.002*"seen_L" + 0.002*"girl_L" + 0.002*"got_H" + 0.002*"mine_H" + 0.002*"sad_H" + 0.002*"wish_L" + 0.002*"rose_H" + 0.002*"stay_H" + 0.001*"get_H"'), 
+
+10, '0.002*"take_L" + 0.002*"mom_H" + 0.002*"say_H" + 0.001*"night_H" + 0.001*"death_H" + 0.001*"beauti_H" + 0.001*"day_H" + 0.001*"escap_H" + 0.001*"bad_H" + 0.001*"life_H"'), 
+
+11, '0.004*"take_L" + 0.003*"care_H" + 0.002*"unawar_L" + 0.002*"play_H" + 0.002*"game_H" + 0.001*"thing_L" + 0.001*"work_H" + 0.001*"like_H" + 0.001*"know_L" + 0.001*"listen_H"'), 
+
+12, '0.018*"go_H" + 0.015*"know_H" + 0.010*"let_H" + 0.010*"love_H" + 0.009*"time_H" + 0.008*"day_H" + 0.007*"come_H" + 0.007*"fall_H" + 0.006*"make_H" + 0.006*"gon_H"'), 
+
+13, '0.002*"watch_H" + 0.002*"percent_H" + 0.002*"hand_H" + 0.002*"life_H" + 0.002*"leav_H" + 0.002*"better_L" + 0.001*"sure_L" + 0.001*"way_L" + 0.001*"glass_L" + 0.001*"gayaa_H"'), 
+
+14, '0.006*"m_H" + 0.006*"think_H" + 0.003*"know_H" + 0.003*"eye_H" + 0.002*"thing_H" + 0.002*"wind_H" + 0.002*"take_L" + 0.002*"see_H" + 0.002*"said_H" + 0.002*"song_H"')]
+
+***********************************
+Topics for Quotes 
+
+Dominant topic 13, 9. 
+
+the two groups differ in 'percept'
+
+                         doc_count 
+Dominant_Topic                                 
+0.0                            43              
+1.0                            31             
+2.0                            18              
+3.0                            40              
+4.0                            32              
+5.0                            54              
+6.0                            37             
+7.0                            43              
+8.0                            45              
+9.0                           343            
+10.0                           21             
+11.0                           45             
+12.0                           24             
+13.0                         1432            
+14.0                           26 
+
+0, '0.005*"differ_L" + 0.003*"right_L" + 0.003*"word_L" + 0.003*"geniu_L" + 0.002*"stupid_L" + 0.002*"held_L" + 0.002*"button_L" + 0.002*"love_L" + 0.002*"wrong_L" + 0.002*"lightn_L"', 
+
+1, '0.001*"world_H" + 0.001*"resolv_L" + 0.001*"defin_H" + 0.000*"power_H" + 0.000*"thank_H" + 0.000*"belong_H" + 0.000*"sticki_H" + 0.000*"polit_H" + 0.000*"judg_H" + 0.000*"tat_H"', 
+
+2, '0.002*"middl_L" + 0.002*"got_L" + 0.002*"eat_L" + 0.002*"fuck_L" + 0.002*"head_L" + 0.002*"time_L" + 0.002*"letter_L" + 0.002*"thee_L" + 0.002*"hahaa_L" + 0.002*"written_L"
+
+3, '0.010*"love_L" + 0.005*"smile_L" + 0.005*"head_L" + 0.005*"thought_L" + 0.004*"fall_L" + 0.004*"keep_L" + 0.004*"give_L" + 0.004*"word_L" + 0.004*"sing_L" + 0.004*"follow_L"'
+
+ 4, '0.002*"public_L" + 0.002*"deserv_L" + 0.002*"book_L" + 0.002*"speech_L" + 0.002*"figur_L" + 0.002*"write_L" + 0.002*"high_L" + 0.002*"done_L" + 0.001*"deadpool_L" + 0.001*"phone_L"'
+
+ 5, '0.011*"gon_L" + 0.011*"make_L" + 0.007*"thing_L" + 0.005*"tell_L" + 0.004*"chang_L" + 0.004*"way_L" + 0.004*"tri_L" + 0.004*"blow_L" + 0.004*"bodi_L" + 0.004*"feel_L"'
+
+ 6, '0.003*"hate_L" + 0.003*"statu_L" + 0.001*"life_H" + 0.001*"ignor_H" + 0.001*"solv_H" + 0.001*"light_H" + 0.001*"problem_H" + 0.001*"dark_H" + 0.001*"hit_H" + 0.001*"afraid_H"'
+
+ 7, '0.010*"want_L" + 0.010*"happi_L" + 0.010*"day_L" + 0.006*"go_L" + 0.004*"hour_L" + 0.004*"thing_L" + 0.003*"find_L" + 0.003*"birthday_L" + 0.003*"strong_L" + 0.003*"minut_L"' 
+
+ 8, '0.010*"know_L" + 0.006*"busi_L" + 0.005*"proud_L" + 0.004*"love_L" + 0.004*"birthday_L" + 0.003*"bodi_L" + 0.003*"die_L" + 0.003*"let_L" + 0.003*"learn_L" + 0.003*"happen_L"' 
+
+ 9, '0.015*"life_L" + 0.013*"love_L" + 0.012*"thing_L" + 0.012*"day_L" + 0.011*"go_L" + 0.011*"time_L" + 0.010*"come_L" + 0.009*"see_L" + 0.009*"think_L" + 0.008*"want_L"'. 
+
+ 10, '0.007*"believ_L" + 0.004*"take_L" + 0.003*"woman_L" + 0.003*"give_L" + 0.003*"peopl_L" + 0.003*"reveal_L" + 0.003*"wonder_L" + 0.002*"idea_L" + 0.002*"life_L" + 0.002*"job_L"' 
+
+ 11, '0.007*"world_L" + 0.007*"love_L" + 0.006*"time_L" + 0.004*"last_L" + 0.003*"rain_L" + 0.003*"feel_L" + 0.003*"way_L" + 0.003*"day_L" + 0.003*"moment_L" + 0.003*"restless_L"' 
+
+ 12, '0.003*"kill_L" + 0.003*"fail_L" + 0.003*"let_L" + 0.003*"freak_L" + 0.002*"sound_L" + 0.002*"seed_L" + 0.002*"fantast_L" + 0.002*"tri_L" + 0.002*"birthday_L" + 0.002*"love_L"'
+
+ 13, '0.012*"love_H" + 0.009*"life_H" + 0.009*"go_H" + 0.008*"know_H" + 0.007*"day_H" + 0.007*"make_H" + 0.007*"thing_H" + 0.006*"time_H" + 0.006*"feel_H" + 0.006*"peopl_H"'), 
+
+ 14, '0.002*"drop_L" + 0.002*"sick_L" + 0.002*"surviv_L" + 0.002*"rate_L" + 0.002*"enough_L" + 0.002*"move_L" + 0.002*"least_L" + 0.002*"timelin_L" + 0.001*"get_H" + 0.001*"gunpowd_H"')
+
+
+
+
+
+
+
+
+
+
+
