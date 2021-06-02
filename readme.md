@@ -16,25 +16,35 @@ step 4:
 quotation_fea.py: generate quotation feature to be used in the pipeline
 
 step 5:
-LDA_stata.py: This script obtains basic statistics for lyrics and quotes and LDA model
+LDA_stats.py: This script obtains basic statistics for lyrics and quotes and LDA model
 get_noun_trunk_lda, change define which component in the sentence you want to use in LDA
 
 data_stats.Rmd: statisitics of the dataset and regression model
 
-classification:
+## sentiment classification (hugging face)
+transformer_sentiment.py
 
-label_quotation: Original content classifier (cosine-similarity threshold)
+## Regression model
+regression_model.Rmd
 
-label_quotation_bleu:Original content classifier (BLEU score threshold)
 
-lyric_or_quotes: lyric classifier (cosine-similarity threshold)
+_______________
 
-lyric_or_quotes_bleu: lyric classifier (BLEU threshold)
+## classification:
+
+label_quotation.py: Original content classifier (cosine-similarity threshold)
+
+label_quotation_bleu.py:Original content classifier (BLEU score threshold)
+
+lyric_or_quotes.py: lyric classifier (cosine-similarity threshold)
+
+lyric_or_quotes_bleu.py: lyric classifier (BLEU threshold)
 
 
 plots: plots shown on the paper
 
 experiment: parameters for experiments
+
 
 
 
