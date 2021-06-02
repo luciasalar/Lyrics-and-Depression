@@ -149,16 +149,16 @@ class GetLabels:
         qol = pd.read_csv(self.path + self.feature_file)
         return qol
 
-
-
     def merge_counts(self):
         #     """Merge keyword counts with cosine similarity. """
         counts = pd.read_csv(self.path + self.feature_file)
         cosine_sim = pd.read_csv(self.path + 'quoteLabel_all.csv')
         cosine_sim = cosine_sim[['textID', 'cosineSim_en', 'cosineSim_lg']]
-        lyrics_fea = counts.merge(cosine_sim, on='textID', how='inner')
+        lyrics_fea = counts.merge(cosine_sim, on='textID', how='outer')
+        print(lyrics_fea.shape)
         # merge with human labels 
-        human_label = pd.read_csv(self.path + 'quote_or_lyrics_annotate.csv')
+        human_label = pd.read_csv(self.path + 'quote_or_lyrics_annotate2.csv', encoding = "ISO-8859-1", engine='python')
+        print(human_label.shape)
         human_label = human_label[['textID', 'human']]
         lyrics_fea = lyrics_fea.merge(human_label, on='textID', how='inner')
         lyrics_fea.to_csv(self.path + 'lyrics_fea.csv')
@@ -175,17 +175,24 @@ class GetLabels:
     def split_train_test(self):
         """Split train test """
         lyrics_fea = self.merge_counts()
+        lyrics_fea = shuffle(lyrics_fea)
 
         quote = lyrics_fea.loc[lyrics_fea['human'] == 'quote']
         lyrics = lyrics_fea.loc[lyrics_fea['human'] == 'lyrics']
+        NonQuote = lyrics_fea.loc[lyrics_fea['human'] == 'NonQuote']
+      
         # get train set
-        train1 = quote.head(200)
-        train2 = lyrics.head(99)
+        train1 = quote.head(205)
+        train2 = lyrics.head(105)
+        train3 = NonQuote.head(205)
         train = train1.append(train2)
+        train = train.append(train3)
         # get test set
-        test1 = quote.tail(100)
-        test2 = lyrics.tail(50)
+        test1 = quote.tail(89)
+        test2 = lyrics.tail(45)
+        test3 = NonQuote.head(89)
         test = test1.append(test2)
+        test = test.append(test3)
 
         train = shuffle(train)
         test = shuffle(test)
@@ -195,14 +202,19 @@ class GetLabels:
 
     def annotate_quote_or_lyric(self, input_file, output_file, count, cos):
         """Annotate lyrics or quotes"""
+        # merge with machine labels 
+        machine_anno = pd.read_csv(self.path + 'quoteLabel_all.csv')
+        machine_anno = machine_anno[['textID', 'label']]
+        input_file = input_file.merge(machine_anno, on='textID')
+
         tag = []
-        for c, cos, quote, in zip(input_file.lyric_count, input_file.cosineSim_lg, input_file.quote_count):
-            if (c > count): # 2
+        for c, cos, quote, label in zip(input_file.lyric_count, input_file.cosineSim_lg, input_file.quote_count, input_file.label):
+            if (c > count) & (label == 'quote'):# 2
                 tag.append('lyrics')
-            elif (c > 0 & int(cos) > cos): # 0.98
+            elif (c > 0 & int(cos) > cos):# 0.98
                 tag.append('lyrics')
             else:
-                tag.append('quote')
+                tag.append(label)
 
         input_file['machine'] = tag
         input_file.to_csv(self.path + output_file)
@@ -220,7 +232,7 @@ class GetLabels:
     def combine_all_labels(self):
         lyrics_lab = pd.read_csv(self.path + "lyrics_output_all.csv")
         lyrics_lab = lyrics_lab[['textID', 'machine']]
-        quote_lab = pd.read_csv(self.path + 'quoteLabel_all.csv')
+        quote_lab = pd.read_csv(self.path + 'quoteLabel_all_bleu.csv')
         all_lab = lyrics_lab.merge(quote_lab, on='textID', how='right')
         new_lab = []
         for lyric, label in zip(all_lab['machine'], all_lab['label']):
@@ -233,7 +245,6 @@ class GetLabels:
         return all_lab
 
 
-
 def loop_da_grid():
 
     path = '/afs/inf.ed.ac.uk/user/s16/s1690903/share/QuoteAndDepression'
@@ -244,9 +255,10 @@ def loop_da_grid():
     non_original_search = l.select_quotes()
     user_dict = l.hash_results('all_search/non_orginal_search.csv')
     # merge the counts with labels
-    fea = l.merge_counts() # return feature file
+    fea = l.merge_counts()# return feature file
     qol = l.get_quote_label(user_dict)
     train, test = l.split_train_test()
+    print(train.shape)
 
     # stored result in file
     file_exists = os.path.isfile(l.path + '../result/lyrics_accuracy.csv')
@@ -254,7 +266,6 @@ def loop_da_grid():
     writer_top = csv.writer(f, delimiter=',', quoting=csv.QUOTE_MINIMAL)
     if not file_exists:
         writer_top.writerow(['count'] + ['cosine'] + ['train_result'] + ['test_result'] +['time'] )
-
 
     for count in experiment['lyrics']['count']:
         for cosine in experiment['lyrics']['cosine']:
@@ -264,18 +275,19 @@ def loop_da_grid():
 
             test_re = l.annotate_quote_or_lyric(test, 'lyrics_output_test.csv', count, cosine)
             report_test = l.get_evaluation_train(test_re)
+            print(report_test)
 
             f = open(l.path + '../result/lyrics_accuracy.csv', 'a')
             result_row = [[count, cosine, pd.DataFrame(report_train), pd.DataFrame(report_test), str(datetime.datetime.now())]]
 
-            writer_top.writerows(result_row)                    
+            writer_top.writerows(result_row)
             gc.collect()
-                                
+
             f.close()
 
-#loop_da_grid()
-l = GetLabels('all_search/all_search.csv', 'quote_or_lyrics.csv')
-new = l.combine_all_labels()
+loop_da_grid()
+#l = GetLabels('all_search/all_search.csv', 'quote_or_lyrics.csv')
+#new = l.combine_all_labels()
 
 if __name__ == "__main__":
     # get individual model 
@@ -283,7 +295,7 @@ if __name__ == "__main__":
     non_original_search = l.select_quotes()
     user_dict = l.hash_results('all_search/non_orginal_search.csv')
     # merge the counts with labels
-    fea = l.merge_count2() # return feature file
+    fea = l.merge_count2()# return feature file
     all_quotes = l.get_quote_label(user_dict)
     labels = l.annotate_quote_or_lyric(fea, 'lyrics_output_all.csv', 3, 0.98)
 

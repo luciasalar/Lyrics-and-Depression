@@ -709,6 +709,7 @@ if __name__ == "__main__":
 
     s = stats(360) 
     fea = s.get_count_quote()
+    fea.to_csv(s.path +'stats_table.csv')
 
     scipy.stats.pearsonr(fea['nega_counts'], fea['cesd_sum']) 
     # (0.10215625183027725, 0.005473527850170207)

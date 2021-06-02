@@ -2,7 +2,9 @@
 title: "data_stats"
 author: "Lushi Chen"
 date: "6 March 2020"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,24 +13,151 @@ require(reshape2)
 require(ggplot2)
 require(dplyr)
 require(gridExtra)
+library(QuantPsyc)
+require(aod)
+#library(glmnet)
+library(tidyverse)
+library(caret)
+library(RColorBrewer)
+library(ggpubr)
+library(Hmisc)
+require(lubridate)
+library(devtools)
+install_github("ProcessMiner/nlcor")
+#library(nlcor)
+library(caret)
 ```
 
 ##Data statistics
 
-
-```{r cars}
-path = "~/Documents/lucia/QuoteAndDepression/data/"
+```{r read file}
+path = '/Users/lucia/hawksworth/QuoteAndDepression/data/sentiment_eval/'
 setwd(path)
 
-stats  <- read.csv('stats_table.csv')
-summary(stats)
+#stats  <- read.csv('stats_table.csv')
+stats  <- read.csv('stats_table_trans_senti.csv')
+all_senti  <- read.csv('evaluation_emsemble_sentistrengh.csv')
 
+
+```
+#new old sentiment correlation
+```{r cor}
+table(all_senti$manual)
+
+all_senti$old_senti_bin <- ifelse(all_senti$sentiment_sum < 0, -1, 1)
+all_senti$new_senti_bin <- ifelse(all_senti$ensemble < 0, -1, 1)
+all_senti$cardiff <- ifelse(all_senti$cardiff < 0, -1, 1)
+all_senti$nlptown <- ifelse(all_senti$nlptown < 0, -1, 1)
+all_senti$distilbert <- ifelse(all_senti$distilbert < 0, -1, 1)
+
+cor.test(all_senti$manual, all_senti$new_senti_bin)#
+cor.test(all_senti$manual, all_senti$old_senti_bin)#
+
+cor.test(all_senti$old_senti_bin, all_senti$new_senti_bin)
+
+cor.test(all_senti$manual, all_senti$cardiff)
+cor.test(all_senti$manual, all_senti$distilbert)
+cor.test(all_senti$manual, all_senti$nlptown)
+
+
+#chi square
+
+
+
+#compute evaluation
+
+compute_pre_re_f1 <- function(sentiment) {
+    precision_senti <- posPredValue(as.factor(sentiment), as.factor(all_senti$manual), positive="1")
+    
+    recall_senti <- sensitivity(as.factor(sentiment), as.factor(all_senti$manual), positive="-1")
+    
+    F1 <- (2 * precision_senti * recall_senti) / (precision_senti + recall_senti)
+    
+    print(precision_senti)
+    print(recall_senti)
+    print(F1)
+
+}
+
+compute_pre_re_f1(all_senti$old_senti_bin)
+compute_pre_re_f1(all_senti$nlptown)
+compute_pre_re_f1(all_senti$distilbert)
+compute_pre_re_f1(all_senti$cardiff)
+compute_pre_re_f1(all_senti$new_senti_bin)
+
+
+
+
+
+
+
+
+
+```
+
+```{r distribution}
+stats$quote_ration <- stats$all_count / stats$all_post_count
+high <- stats[stats$cesd_sum > 22 & stats$cesd_sum < 40, ]
+low <- stats[stats$cesd_sum <= 22, ]
+veryhigh <- stats[stats$cesd_sum >= 40, ]
+
+median(high$all_post_count)
+median(low$all_post_count)
+median(veryhigh$all_post_count)
+
+plot(stats$cesd_sum, stats$all_post_count)
+#qplot(data = stats, x = cesd_sum, y = all_post_count) + geom_hline(yintercept=77, color = 'red')
+
+
+t.test(high$cesd_sum, low$cesd_sum)
+
+sum(high$quote)
+
+sum(low$quote)
+
+
+#stats for high grop
+sum(high$neu_lyrics)
+sum(high$neu_quote)
+sum(high$neu_counts)
+
+p1 <- t.test(high$pos_counts, low$pos_counts)
+p2 <- t.test(high$nega_counts, low$nega_counts)
+p3 <- t.test(high$neu_counts, low$pos_counts)
+
+p4 <- t.test(high$pos_lyrics, low$pos_lyrics)
+p5 <- t.test(high$neg_lyrics, low$neg_lyrics)
+p6 <- t.test(high$neu_lyrics, low$neu_lyrics)
+
+p7 <- t.test(high$pos_quote, low$pos_quote)
+p8 <- t.test(high$neg_quote, low$neg_quote)
+p9 <- t.test(high$neu_quote, low$pos_quote)
+
+p <- c(p1$p.value, p2$p.value, p3$p.value, p4$p.value, p5$p.value, p6$p.value, p7$p.value, p8$p.value, p9$p.value)
+p.adjust(p, method = "BH", n = length(p))
+
+```
+
+
+```{r graph}
 #convert table to long format
 stats['userid'] <- NULL
 stats['X'] <- NULL
 
+stats$pos_l_all <- stats$pos_lyrics/stats$all_post_count 
+stats$neg_l_all <- stats$neg_lyrics/stats$all_post_count 
+stats$neu_l_all <- stats$neu_lyrics/stats$all_post_count 
+
+stats$pos_q_all <- stats$pos_quote/stats$all_post_count 
+stats$neg_q_all <- stats$neg_quote/stats$all_post_count 
+stats$neu_q_all <- stats$neu_quote/stats$all_post_count 
+
+#use absolute values for magnitude
+stats$neg_mag_lyrics <- abs(stats$neg_mag_lyrics)
+stats$neg_mag_quote <- abs(stats$neg_mag_quote)
+
 stats  %>%
-  select('pos', 'neg', 'neu') -> all_posts
+  dplyr::select('pos', 'neg', 'neu') -> all_posts
 
 #get users 
 stats_table <- melt(all_posts)
@@ -39,48 +168,178 @@ p1 <- ggplot(data = stats_table,
   geom_boxplot() +
   stat_summary(fun.y=mean, geom="point", shape=20, size=5, color="black", fill="black")+
   scale_y_continuous(limits = c(0, 50)) + 
-  xlab("Variables") +
   ylab('Post Counts') +
-  labs(title = 'Statistics of Post Counts in 180 Days')
+  theme(axis.text.x=element_text(size = 12)) + 
+  labs(title = 'Post Counts in one year (N = 781)')
 
 #significant difference 
-t.test(stats$pos,stats$neg)
-summary(stats$neg)
+t.test(stats$pos_quote,stats$neg_quote)
+summary(stats$pos_quote)
+sd(stats$pos_quote)
 
 #lyric counts
 stats  %>%
-  select('pos_counts', 'nega_counts', 'neu_counts', 'all_count') -> lyrics
+  dplyr::select('pos_lyrics', 'neg_lyrics', 'neu_lyrics', 'pos_quote', 'neg_quote', 'neu_quote', 'all_count') -> lyrics
+
 
 lyrics <- lyrics[lyrics$all_count > 0, ]
+lyrics$all_count <- NULL
 lyrics_table <- melt(lyrics)
 
 p2 <- ggplot(data = lyrics_table,
        aes(x = variable, y = value, fill=variable)) +
   geom_boxplot() +
-  scale_y_continuous(limits = c(0, 5)) + 
+  scale_y_continuous(limits = c(0, 3)) + 
   stat_summary(fun.y=mean, geom="point", shape=20, size=5, color="black", fill="black")+
-  xlab("Variables") +
-  ylab('Lyrics Counts') + 
-  theme(axis.text.x=element_text(angle=30, hjust=1)) + 
-  labs(title = 'Statistics of Lyrics Counts in 180 Days')
+  ylab('Counts') + 
+  theme(axis.text.x=element_text(angle=30, hjust=1, size = 12)) + 
+  labs(title = 'Non-original Content Counts in one year (N = 305)')
 
-t.test(lyrics$pos,lyrics$neg)
+#t.test(lyrics$pos,lyrics$neg)
 sd(lyrics$nega_counts)
-
 
 grid.arrange(p1, p2, ncol=2)
 ```
 
-```{r pressure, echo=FALSE}
-model <- lm(cesd_sum ~   pos + neu_counts + all_count, stats)
-summary(model)
+
+
+```{r regression, echo=FALSE}
+# recode 
+stats$cesd_sum_binary <- ifelse(stats$cesd_sum >= 22, 1, ifelse(stats$cesd_sum < 22, 0, 99))
+
+stats$quote_ratio <- stats$quote/stats$all_post_count
+
+model <- glm(cesd_sum_binary ~ non_origin_ratio + pos_lyr_ratio+ neg_lyr_ratio + neu_lyr_ratio + pos_quo_ratio+ neg_quo_ratio + neu_quo_ratio + neg_ratio + pos_ratio + lyr_ratio + all_count + pos_mag_lyrics + neg_mag_lyrics+ pos_mag_quote + neg_mag_quote, data = stats, family = "binomial")
+#summary(model)
+
+#model 1 lyrics ratio
+model1 <- glm(cesd_sum_binary ~ pos_lyr_ratio+ neg_lyr_ratio + neu_lyr_ratio + lyr_ratio, data = stats, family = "binomial")
+#summary(model1)
+
+#model 2 quotation ratio
+model2<- glm(cesd_sum_binary ~ pos_lyr_ratio+ neg_lyr_ratio + neu_lyr_ratio + lyr_ratio +  pos_quo_ratio+ neg_quo_ratio + neu_quo_ratio, data = stats, family = "binomial")
+summary(model2)
+
+# all variables
+model1<- glm(cesd_sum_binary ~ pos_lyr_ratio + neg_lyr_ratio  + lyr_ratio  +  pos_quo_ratio + neg_quo_ratio + pos_mag_lyrics + neg_mag_lyrics+ pos_mag_quote + neg_mag_quote, data = stats, family = "binomial")
+summary(model1)
+
+model1<- lm(cesd_sum ~ pos_lyr_ratio + neg_lyr_ratio  + lyr_ratio + quote_ratio +  pos_quo_ratio + neg_quo_ratio + pos_mag_lyrics + neg_mag_lyrics+ pos_mag_quote + neg_mag_quote + neg_ratio , data = stats, family = "binomial")
+summary(model1)
+
+#no magnitude
+model_no_mag<- glm(cesd_sum_binary ~ pos_lyr_ratio+ neg_lyr_ratio  + lyr_ratio +  pos_quo_ratio + neg_quo_ratio + quote_ratio, data = stats, family = "binomial")
+summary(model_no_mag)
+
+
+# post, lyrics ratio
+#model2<- glm(cesd_sum_binary ~ neu_lyr_ratio + lyr_ratio +  neg_quo_ratio , data = stats, family = "binomial")
+#summary(model2)
+model2<- glm(cesd_sum_binary ~ pos_lyr_ratio+ neg_lyr_ratio + neu_lyr_ratio + lyr_ratio +  pos_quo_ratio+ neg_quo_ratio + neu_quo_ratio, data = stats, family = "binomial")
+summary(model2)
+
+# all post sentiment 
+model3<- glm(cesd_sum_binary ~ neu_ratio + neg_ratio + pos_ratio , data = stats, family = "binomial")
+summary(model3)
+
+# all variable to post count
+model1<- glm(cesd_sum_binary ~ pos_l_all + neg_l_all + neu_l_all + lyr_ratio +  pos_q_all + neg_q_all  + neu_q_all  + pos_mag_lyrics + neg_mag_lyrics+ pos_mag_quote + neg_mag_quote + neu_ratio + neg_ratio + pos_ratio, data = stats, family = "binomial")
+summary(model1)
+
+
+##compare models
+a  <- anova(model1, model_no_mag, test="Chisq")
+
+#covariance
+s <- stats[, c("pos_lyr_ratio","neg_lyr_ratio", "neu_lyr_ratio", "lyr_ratio", "pos_quo_ratio", "neg_quo_ratio", "neu_quo_ratio" , "pos_mag_lyrics" , "neg_mag_lyrics", "pos_mag_quote" , "neg_mag_quote" , "neu_ratio" , "neg_ratio" , "pos_ratio")]
+
+cormat <- round(cor(s), 2)
+melted_cormat <- melt(cormat)
+hm.palette <- colorRampPalette(rev(brewer.pal(11, 'Spectral')), space='Lab')
+ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + 
+  theme(axis.text.x = element_text(angle = 40, hjust = 1, size = 13), axis.text.y = element_text(size = 13),axis.title.x=element_blank(), axis.title.y=element_blank()) + 
+  geom_tile()+
+  coord_equal()+
+  scale_fill_gradientn(colours = hm.palette(100))
 ```
 
-## Sentiment Statistics
+```{r cor_matrix, echo=FALSE}
+# get p values
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    if (pmat[ut] < 0.001){
+    p = pmat[ut]
+    }
+    )
+}
+res2<-rcorr(as.matrix(s))
+flattenCorrMatrix(res2$r, res2$P)
+```
+
+
+
 
 You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
+#plot distribution of content originality 
+```{r plot, echo=FALSE}
+stats2 <- stats[stats$non_origin_ratio > 0, ]
+
+
+stats2  %>%
+  dplyr::select('non_origin_ratio', 'lyr_ratio','quote_ratio') -> non_or
+
+#get users 
+stats_table <- melt(non_or)
+colnames(stats_table) <- c('variable', 'ratio')
+ggplot(stats_table,aes(x=ratio)) + 
+    geom_histogram(data=subset(stats_table,variable == 'lyr_ratio'), fill = "blue", alpha = 0.2)+
+   geom_histogram(data=subset(stats_table,variable == 'quote_ratio'), fill = "red", alpha = 0.2) +
+  theme(axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13),  axis.title.y=element_text(size = 16), axis.title.x=element_text(size = 16),) + ylab('Lyrics/Quote Count') + xlab('Ratio')
+
+```
+
+```{r plot2, echo=FALSE}
+ggarrange(p1, p2,  widths =  c(1.5, 0.8),
+          labels = c("A", "B"),
+          ncol = 2, nrow = 2)
+```
+
+
+#plot ratio of lyrics, negative quotation ratio and depression score
+```{r, echo=FALSE}
+
+stats  %>%
+  dplyr::select('non_origin_ratio', 'lyr_ratio','quote_ratio') -> non_or
+
+#get users 
+stats_table <- melt(non_or)
+colnames(stats_table) <- c('variable', 'ratio')
+ggplot(stats_table,aes(x=ratio)) + 
+    geom_histogram(data=subset(stats_table,variable == 'lyr_ratio'), fill = "blue", alpha = 0.2)+
+   geom_histogram(data=subset(stats_table,variable == 'quote_ratio'), fill = "red", alpha = 0.2) 
+
+```
+
+
+
+
+# sum column value 
+```{r , echo=FALSE}
+sum(stats[, 'pos_quote'])
+sum(stats[, 'neg_quote'])
+sum(stats[, 'neu_quote'])
+```
+
+
+
+
+```{r , echo=FALSE}
+
 high_symptom <- stats[stats$cesd_sum > 22, ]
 low_symptom <- stats[stats$cesd_sum < 22, ]
 
@@ -95,3 +354,118 @@ summary(low_symptom)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+lyrics stats
+```{r lyrics stats, echo=FALSE}
+path = "/Users/lucia/Desktop/quote_local/data/"
+setwd(path)
+lyrics_liwc  <- read.csv('topic_dominance_lyrics_liwc.csv')
+#com_score <- aggregate(lyrics_liwc[, 7:99], list(lyrics_liwc$dominant_t), mean)
+# select the top 5 topics, 0, 3, 5, 7, 12
+top5 <- lyrics_liwc[lyrics_liwc$dominant_t==0 | lyrics_liwc$dominant_t==3 | lyrics_liwc$dominant_t==5 | lyrics_liwc$dominant_t==7 | lyrics_liwc$dominant_t==12,]
+
+
+top5$dominant_t <- factor(top5$dominant_t)
+
+
+getPlot <- function(data, group, var, yMax, xlabel){
+  # Change outlier, color, shape and size
+  p <- ggplot(data, aes(x=group, y=var, fill = group)) + 
+    geom_boxplot(outlier.colour="black", outlier.shape=NA,
+                  outlier.size=1)  + coord_cartesian(ylim = c(0, yMax)) +  theme_linedraw()+ theme(axis.text.x = element_blank(), axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank()) + stat_summary(fun.y=mean, geom="point", shape=23, size=4) +theme(legend.position = "none") + labs( x = xlabel)  + xlab(xlabel) + ylab('LIWC_score')
+  return (p) 
+}
+
+getPlotLegend <- function(data, group, var, yMax, xlabel){
+  # Change outlier, color, shape and size
+  p <- ggplot(data, aes(x=group, y=var, fill = group)) + 
+    geom_boxplot(outlier.colour="black", outlier.shape=NA,
+                  outlier.size=1)  + coord_cartesian(ylim = c(0, yMax)) +  theme_linedraw() + theme(axis.text.x = element_blank(), axis.title.x = element_text(size = 14), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank()) + stat_summary(fun.y=mean, geom="point", shape=23, size=4) + labs( x = xlabel) + theme(legend.text=element_text(size=14)) + ylab('LIWC_Score')
+  return (p)
+  #axis.text.x = element_text(angle = 90, hjust =   1, size=10
+}
+
+
+
+p1 <- getPlot(top5, top5$dominant_t, top5$negemo, 10, "negative emotion")
+
+p2 <- getPlot(top5, top5$dominant_t, top5$posemo, 10, "positive emotion")
+p3 <- getPlot(top5, top5$dominant_t, top5$you, 20, "you")
+p4 <- getPlot(top5, top5$dominant_t, top5$i, 20, "i")
+p5 <- getPlot(top5, top5$dominant_t, top5$percept, 10, "percept")
+p6 <- getPlotLegend(top5, top5$dominant_t, top5$power, 8, "power")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6,  nrow = 2, widths = cbind(c(1, 1, 1.3))) 
+#getPlot(top5, top5$dominant_t, top5$verb, 50, "WC")
+
+
+summary(top5$negemo)
+
+get_mean_med <- function(data, var){
+    data %>%
+      group_by(dominant_t) %>% 
+      summarize(med_val = mean(anger), median_val = median(anger), Q1 = quantile(anger, c(.75)), Q2 = quantile(anger, c(.90))) -> result
+    return (result)
+}
+
+get_mean_med <- function(data, var){
+    data %>%
+      group_by(dominant_t) %>% 
+      summarize(med_val = mean(sad), median_val = median(sad), Q1 = quantile(sad, c(.75)), Q2 = quantile(sad, c(.90))) -> result
+    return (result)
+}
+
+#c <- get_mean_med(top5)
+
+```
+
+
+
+```{r, echo=FALSE}
+path = "/Users/lucia/Desktop/quote_local/data/"
+setwd(path)
+quotes_liwc  <- read.csv('topic_dominance_quotes_liwc.csv')
+
+top2 <- quotes_liwc[quotes_liwc$dominant_t==13 | quotes_liwc$dominant_t==9,]
+
+
+top2$dominant_t <- factor(top2$dominant_t)
+
+
+getPlot <- function(data, group, var, yMax, xlabel){
+  # Change outlier, color, shape and size
+  p <- ggplot(data, aes(x=group, y=var, fill = group)) + 
+    geom_boxplot(outlier.colour="black", outlier.shape=NA,
+                  outlier.size=1)  + coord_cartesian(ylim = c(0, yMax)) +  theme_linedraw()+ theme(axis.text.x = element_blank(), axis.title.x = element_text(size = 14), axis.title.y = element_text(size = 14), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank()) + stat_summary(fun.y=mean, geom="point", shape=23, size=4) +theme(legend.position = "none") + labs( x = xlabel)  + xlab(xlabel) + ylab('LIWC_score')
+  return (p) 
+}
+
+getPlotLegend <- function(data, group, var, yMax, xlabel){
+  # Change outlier, color, shape and size
+  p <- ggplot(data, aes(x=group, y=var, fill = group)) + 
+    geom_boxplot(outlier.colour="black", outlier.shape=NA,
+                  outlier.size=1)  + coord_cartesian(ylim = c(0, yMax)) +  theme_linedraw() + theme(axis.text.x = element_blank(), axis.title.x = element_text(size = 14), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank()) + stat_summary(fun.y=mean, geom="point", shape=23, size=4) + labs( x = xlabel) + theme(legend.text=element_text(size=14)) + ylab('LIWC_Score')
+  return (p)
+  #axis.text.x = element_text(angle = 90, hjust =   1, size=10
+}
+
+t.test(top2$you ~ top2$dominant_t)
+t.test(top2$percept ~ top2$dominant_t)
+
+p1 <- getPlot(top2, top2$dominant_t, top2$posemo, 15, "positive emotion")
+p2 <- getPlotLegend(top2, top2$dominant_t, top2$negemo, 15, "negative emotion")
+
+getPlotLegend(top2, top2$dominant_t, top2$percept, 20, "perception")
+getPlotLegend(top2, top2$dominant_t, top2$you, 20, "you")
+ 
+gridExtra::grid.arrange(p1, p2,  nrow = 1, widths = c(1, 1.3))
+```
+
+
+
+
+
